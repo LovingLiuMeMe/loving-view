@@ -18,14 +18,23 @@
 export default {
     data(){
         return {
-            welcomeList: []
+            welcomeList: [],
+            mySwiper: {}
         }
     },
     mounted() {
-        new Swiper('.swiper-container', {
+        this.mySwiper = new Swiper('.swiper-container', {
             pagination: {
                 el: '.swiper-pagination',
             },
+            initialSlide :0,    
+            observer:true,  //修改swiper自己或子元素时，自动初始化swiper    
+            observeParents:true,  //修改swiper的父元素时，自动初始化swiper
+            onSlideChangeEnd: function(swiper){ 
+                swiper.update();  //更新Swiper，这个方法包含了updateContainerSize，updateSlidesSize，updateProgress，updatePagination，updateClasses方法。也就是数据改变是重新初始化一次swiper；
+                this.mySwiper.startAutoplay();  //重新开始自动切换；
+                this.mySwiper.reLoop();  //重新对需要循环的slide个数进行计算，当你改变了slidesPerView参数时需要用到，需要自动轮播的时候必须要加上；
+            }
         })
     },
     created() {
