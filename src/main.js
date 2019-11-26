@@ -7,7 +7,7 @@ import store from "./store"
 import axios from 'axios'
 Vue.prototype.$axios = axios
 // 设置 请求的公共地址
-Vue.prototype.$baseUrl = 'http://www.lovingliu.cn:8000/lovingmall/'
+Vue.prototype.$baseUrl = 'http://view.lovingliu.cn/lovingmall/'
 // 引入自定义的全局变量及方法
 import common from './function/common.js'
 Vue.prototype.$common = common
