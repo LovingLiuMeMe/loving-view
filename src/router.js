@@ -3,8 +3,8 @@ import Router from "vue-router"
 
 // 引入组件
 import login from '@/views/login'
+import register from '@/views/register'
 import welcome from '@/views/welcome'
-import ad from '@/views/ad'
 
 import home from '@/views/home/home'
 import choose from '@/views/home/choose'
@@ -23,6 +23,7 @@ import information from '@/views/information/information'
 
 import goodDetail from '@/components/goodDetail'
 import news from '@/components/news'
+import orderDetail from '@/components/orderDetail'
 
 Vue.use(Router)
 export default new Router({
@@ -89,10 +90,10 @@ export default new Router({
         component: login,
         meta: { isLogin: false }
     }, {
-        path: "/ad",
-        name: "ad",
-        component: ad,
-        meta: { isLogin: false },
+        path: '/register',
+        name: 'register',
+        component: register,
+        meta: { isLogin: false }
     }, {
         path: "/userInfo",
         name: "userInfo",
@@ -107,6 +108,11 @@ export default new Router({
         path: "/contact",
         name: "contact",
         component: contact,
+        meta: { isLogin: false }
+    }, {
+        path: "/orderDetail",
+        name: "orderDetail",
+        component: orderDetail,
         meta: { isLogin: false }
     }, {
         path: '*',

@@ -2,7 +2,9 @@
 <div class="home">
     <!-- 首页头部 -->
     <van-nav-bar border>
-        <span name="title" slot="title"><i class="iconfont icon-VIVO"></i></span>
+        <span name="title" slot="title" class="img-wrap">
+            <img src="/img/logo.png" alt="logo"/>
+        </span>
         <van-icon name="search" slot="right" size="0.55rem" @click="dev"/>
     </van-nav-bar>
     <!-- 首页头部end -->
@@ -17,8 +19,8 @@
     <!-- 轮播图 -->
     <div class="swipe">
         <van-swipe :autoplay="3000" indicator-color="red">
-            <van-swipe-item v-for="(item,index) in swipeImg" :key="index">
-                <img :src="item.imgUrl" alt="轮播图">
+            <van-swipe-item v-for="(item,index) in swipeImg" :key="index" @click="open(item.redirectUrl)">
+                <img :src="item.carouselUrl" alt="轮播图">
             </van-swipe-item>
         </van-swipe>
     </div>
@@ -33,19 +35,21 @@
 
     <!-- 首页导航end -->
     <div class="main">
-        <van-nav-bar border title="--- 热卖产品 ---"></van-nav-bar>
-        <van-row class="products">
-            <van-col span="12" v-for="(item,index) in hotList" :id="item.id" :key="index">
-                <div @click="open(item.id)">
-                    <div class="image">
-                        <img :src="item.img" alt="图片">
+        <div v-for="activity in activtyList" :key="activity.activityId">
+            <van-nav-bar border :title="activity.activityName"></van-nav-bar>
+            <van-row class="products">
+                <van-col span="12" v-for="activityItem in activity.activityItemList" :id="activityItem.activityItemId" :key="activityItem.activityItemId">
+                    <div @click="open(activityItem.goodsId)">
+                        <div class="image">
+                            <img v-lazy="activityItem.goodsCoverImg" alt="图片">
+                        </div>
+                        <div class="name">{{activityItem.goodsName}}</div>
+                        <div class="nametwo">{{"商品编号:"+activityItem.goodsId}}</div>
+                        <div class="price">￥{{activityItem.sellingPrice}}</div>
                     </div>
-                    <div class="name">{{item.name}}</div>
-                    <div class="nametwo">{{item.nametwo}}</div>
-                    <div class="Price">￥{{item.Price}}</div>
-                </div>
-            </van-col>
-        </van-row>
+                </van-col>
+            </van-row>            
+        </div>
     </div>
 </div>  
 
@@ -58,30 +62,35 @@
         name:"Home",
         data(){
             return{
-                hotList:[],
-                swipeImg:[{
-                    imgUrl:"/img/home1.jpg"
-                },{
-                    imgUrl:"/img/home1.jpg"
-                },{
-                    imgUrl:"/img/home1.jpg"
-                }]
+                activtyList:[],
+                swipeImg:[]
             }
         },
         mounted(){
             this.getData();
+            this.getSwipper();
         },
         methods:{
+            getSwipper(){
+                this.$axios.get(this.$baseUrl+"userIndex/bannerlist").then(res => {
+                    if(res.data.code === 0 || res.data.code === 200 ){
+                        console.log(res.data.data)
+                        this.swipeImg = res.data.data
+                    }
+                })
+            },
             getData(){
-                this.$axios.get("/Home.json").then((res)=> {
-                    for (var i = 0; i < res.data.hotList.length; i++) {
-                    let selData = res.data.hotList[i];
-                    this.hotList.push(selData);
+                this.$axios.get(this.$baseUrl+"userActivity/activityList").then((res)=> {
+                    if(res.data.code === 0 || res.data.code === 200 ){
+                        console.log(res.data.data)
+                        this.activtyList = res.data.data
                     }
                 })
             },
             open(id){
-                this.$router.push({path:"goodDetail",query:{id:id}})
+                if(id !== '##'){
+                   this.$router.push({path:"goodDetail",query:{id:id}}) 
+                }
             },
             xuangou(){
                 this.$router.push({path:"choose"})
@@ -90,7 +99,7 @@
                 this.$router.push({path:"parts"})
             },
             dev(){
-                Toast.fail('程序员小哥哥正在努力开发中....');
+                Toast.fail('程序员小哥哥表示找到女朋友再开发....');
             }
         },
     }
@@ -107,6 +116,13 @@
     background: white;
     overflow-x: hidden;
     overflow-y: auto;
+    .img-wrap {
+        display: flex;
+        justify-content: center;
+        img {
+            height: 46px;
+        }
+    }
     .swipe{
         height: 6.5rem;
         margin-top: 1px;
@@ -165,7 +181,7 @@
                     padding-top: 0.15rem;
                     font-family: "微软雅黑"
                 }
-                .Price{
+                .price{
                     font-size: 0.43rem;
                     color: red;
                     margin:0 auto;

@@ -6,9 +6,8 @@
             @click-left="back"
         />
         <div class="AuthorMain">
-            <h2>一条小团团OVO</h2>
-            <p>斗鱼：4615502</p>
-            <img src="/img/300x450.jpeg" alt="头像" width="80%">
+            <h2>lovingliu的自我介绍</h2>
+            <p>未完待续</p>
             <van-button plain type="danger" @click="goHome">进入首页</van-button>
         </div>
     </div>

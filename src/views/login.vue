@@ -5,9 +5,9 @@
             left-arrow
             @click-left="back"
         />
-        <van-cell-group>
+        <van-cell-group class="van-cell-group">
             <van-field
-                v-model="username"
+                v-model="userName"
                 required
                 clearable
                 label="用户名"
@@ -15,7 +15,7 @@
                 placeholder="请输入用户名"
                 rows="1"
                 autosize
-                @click-right-icon="$toast('提示：1+1=？')"
+                @click-right-icon="$toast('如:lovingliu@126.com')"
             />
             <van-field
                 v-model="password"
@@ -43,8 +43,8 @@ import { mapState,mapMutations,mapGetters,mapActions } from 'vuex';
 export default {
     data(){
         return {
-            username:'admin',
-            password:'123456'
+            userName:'',
+            password:''
         }
     },
     methods: {
@@ -52,30 +52,19 @@ export default {
             this.$router.go(-1)
         },
         login(){ 
-            // axios.post() 不支持请求本地json文件？？？
-            this.$axios.get("/users.json").then(res=>{
-                if(res.status!=200){
-                    Toast.fail('登录失败！')
-                }else{
-                    res.data.usersList.forEach(item => {
-                        // 账号密码相同，登录成功
-                        if(item.username===this.username && item.password===this.password){
-                            // 设置Vuex登录标志为true，默认userLogin为false
-                            this.$store.dispatch("userLogin", true);
-                            //Vuex在刷新的时候userLogin会回到默认值false，所以我们需要用到HTML5储存(sessionStorage)
-                            //在sessionStorage中设置一个名为Flag，值为isLogin的字段，作用是如果Flag有值且为isLogin的时候，证明用户已经登录了。
-                            sessionStorage.setItem("loginInfo",JSON.stringify({id:1,username:this.username,Flag:"isLogin"}))
-                            Toast.success('登录成功')
-                            //登录成功后跳转到指定页面
-                            this.$router.push("/my")
-                            return
-                        }else{
-                            Toast.fail('账号或密码错误！')
-                        }
-                    })
+            this.$axios.post(this.$baseUrl + "user/login",{userName:this.userName, password:this.password}).then(res=>{
+                console.log('hook')
+                if(res.data.code === 0 || res.data.code === 200) {
+                    let user = res.data.data
+                    this.$store.dispatch("userLogin", user)
+                    sessionStorage.setItem("userInfo",JSON.stringify(user))
+                    Toast.success('登录成功')
+                    this.$router.push("/home")
+                }else {
+                    Toast.fail(res.data.msg)
                 }
-            }).catch((err) => {
-                console.log(err)
+            }).catch(err => {
+                Toast.fail(err.message)
             })
         }  
     },

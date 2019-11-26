@@ -8,6 +8,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: { // 初始全局状态和数据
         footerIsShow: true,
+        userInfo: {},
         isLogin: false,
         // 数据保存本地防止刷新消失
         goodDetails: localStorage["goodDetails"] ? JSON.parse(localStorage["goodDetails"]) : [],
@@ -15,6 +16,9 @@ export default new Vuex.Store({
         carts: localStorage["carts"] ? JSON.parse(localStorage["carts"]) : [],
         // 订单
         orders: localStorage["orders"] ? JSON.parse(localStorage["orders"]) : [],
+
+        // 临时订单 （订单详情也需要使用）
+        tempOrder: {}
     },
     mutations: { // 全局方法，控制state里的状态和数据
         // 根据路由切换底部导航栏是否显示
@@ -24,9 +28,15 @@ export default new Vuex.Store({
         YesShow: (state) => {
             state.footerIsShow = true
         },
-        //保存登录状态
-        userStatus(state, flag) {
-            state.isLogin = flag
+        // 保存登录用户信息
+        userLogin(state, userInfo) {
+            state.userInfo = userInfo
+            state.isLogin = true
+        },
+        // 清空登录用户信息
+        userLogout(state) {
+            state.userInfo = {}
+            state.isLogin = false
         },
         //加入购物车
         addcarts: (state, data) => {
@@ -75,18 +85,26 @@ export default new Vuex.Store({
                 // on cancel
             });
         },
+        // 添加临时订单
+        addTempOrder: (state, order) => {
+            console.log('添加临时订单',order)
+            state.tempOrder = order
+        }
     },
     actions: { // 应用mutations里的方法
         //获取登录状态
-        userLogin({ commit }, flag) {
-            commit("userStatus", flag)
+        userLogin({ commit }, userInfo) {
+            commit("userLogin", userInfo)
         },
+        userLogout({ commit }) {
+            commit("userLogout")
+        }
     },
     getters: { // 计算state里的值
         sum: state => {
             let sum = 0
             state.carts.forEach((cart) => {
-                sum += cart.price * cart.value
+                sum += cart.sellingPrice * cart.goodsCount
             })
             return sum
         },

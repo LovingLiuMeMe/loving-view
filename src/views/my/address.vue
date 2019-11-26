@@ -4,8 +4,10 @@
         <van-address-list
             v-model="chosenAddressId"
             :list="list"
+            tel="telephone"
             @add="toAdd"
             @edit="toEdit"
+            @select="addressIdChange"
             class="addressList"
         />
         <!-- 添加地址 -->  
@@ -52,9 +54,11 @@ export default {
             areaList:AreaList,
             addressInfo:{},
             isChoose:false,
+            // 默认选择的ID
             chosenAddressId: '',
             editId:-1,
-            list:[]
+            list:[],
+            userId: this.$store.state.userInfo.userId
         }
     },
     computed: {},
@@ -63,21 +67,30 @@ export default {
     },
     methods: {
         getData(){
-            this.$axios.get("/users.json").then((res)=>{
-                // 多个用户时，遍历用户组
-                res.data.usersList.forEach((item,index)=>{
-                    // 匹配当前登录用户
-                    if(item.username===JSON.parse(sessionStorage.getItem("loginInfo")).username){
-                        this.list=item.addressList
-                        // 设置默认地址
-                        this.list.forEach((item,index)=>{
+            this.$axios.get(this.$baseUrl + "userAddress/list",{ params:{
+                userId: this.userId
+            }}).then((res)=>{
+                if(res.data.code === 0 || res.data.code === 200){
+                    // 遍历
+                    this.list = res.data.data;
+                    console.log('list', this.list)
+                    if(this.list.length > 0){
+                        this.list.map((item,index)=>{
                             if(item.isDefault){
                                 this.chosenAddressId = item.id
                             }
                         })
-                        return 
+                        if(!this.chosenAddressId) {
+                            this.chosenAddressId = this.list[0].id
+                        }                             
+                    }else {
+                        Toast.fail('快去新增一个收货地址吧!')
                     }
-                })
+                    console.log(this.chosenAddressId)
+                }else {
+                    Toast.fail(res.data.message)
+                }
+
             })
         },
         back(){
@@ -92,21 +105,15 @@ export default {
             }
             
         },
+        /**
+         * 添加新的收货地址
+         */
         onAdd(data) {
             (async () => {
-                // 新增地址为默认地址，
-                if(data.isDefault==true){
-                    this.list.forEach((item,index)=>{
-                        item.isDefault=false
-                        this.chosenAddressId=this.list.length+1
-                        return
-                    })
-                }
-                let oneAddress={
-                    id:Number(this.list[this.list.length-1].id+1),
+                let newAddress={
                     name:data.name,
                     tel:data.tel,
-                    isDefault: data.isDefault,
+                    isDefault:data.isDefault? 1 : 0,
                     province:data.province,
                     city:data.city,
                     county:data.county,
@@ -115,9 +122,8 @@ export default {
                     areaCode: data.areaCode,
                     address:`${data.province}${data.city}${data.county}${data.addressDetail}`
                 }
-                
-                await this.list.push(oneAddress)
-                // console.log(oneAddress)
+                await this.addAddress(newAddress)
+                console.log('newAddress',newAddress)
                 this.isAdd=false
             })()
         },
@@ -126,38 +132,63 @@ export default {
             this.addressInfo=this.list[index]
             this.editId=index
         },
+        /**
+         * 修改收货地址
+         */
         onEdit(item){
-            this.list[this.editId].name=item.name
-            this.list[this.editId].tel=item.tel
-            this.list[this.editId].province=item.province
-            this.list[this.editId].city=item.city
-            this.list[this.editId].county=item.county
-            this.list[this.editId].addressDetail=item.addressDetail
-            this.list[this.editId].postalCode=item.postalCode
-            this.list[this.editId].areaCode=item.areaCode
-            this.list[this.editId].address=`${item.province}${item.city}${item.county}${item.addressDetail}`
-            this.isEdit=false
+            (async () => {
+                console.log('item',item)
+                let newAddress={
+                    id: item.id,
+                    name: item.name,
+                    tel: item.tel,
+                    isDefault: item.isDefault? 1 : 0,
+                    province: item.province,
+                    city: item.city,
+                    county: item.county,
+                    addressDetail: item.addressDetail,
+                    postalCode: item.postalCode,
+                    areaCode: item.areaCode,
+                    address:`${item.province}${item.city}${item.county}${item.addressDetail}`
+                }
+                await this.addAddress(newAddress)
+                console.log('newAddress',newAddress)
+                this.isEdit=false
+            })()
         },
+        /**
+         * 删除地址
+         */
         onDelete() {
             this.list.splice(this.editId,1)
             this.isEdit = false
         },
-    },
-    watch: {
-        // 监听chosenAddressId值的变化，点击地址设置为默认地址
-        "chosenAddressId":function () {
-            this.list.forEach((item,index)=>{
-                item.isDefault=false
-                if(item.id==this.chosenAddressId){
-                    item.isDefault=true
-                    return
-                    
+        addAddress(newAddress) {
+            newAddress.userId = this.userId
+            // 新增
+            this.$axios.post(this.$baseUrl + "userAddress/save",newAddress).then( res => {
+                if(res.data.code === 0 || res.data.code === 200) {
+                    Toast.success(res.data.msg);
+                    this.getData();
+                }else{
+                Toast.fail(res.data.msg);
                 }
-                console.log(item.isDefault)
-                return
+            }).catch( err => {
+                Toast.fail(err.message)
             })
+        },
+        addressIdChange(item, index) {
+            (async () => {
+                let newAddress={
+                    id: item.id,
+                    isDefault: 1
+                }
+                await this.addAddress(newAddress)
+                console.log('newAddress',newAddress)
+                this.isEdit=false
+            })()  
         }
-    },
+    }
 }
 </script>
 

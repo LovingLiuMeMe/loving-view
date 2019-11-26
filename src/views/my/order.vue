@@ -5,76 +5,47 @@
             left-arrow
             @click-left="back"
             />
-        <div class="orderimg" v-if="!orders.length">
+        <div class="orderimg" v-if="!orderList.length">
             <img src="/img/dingdan.png" alt="订单">
             <p>您暂无订单</p>
         </div>
-        <div class="orderMain">
-            <van-panel 
-                v-for="(order,i) in orders" :key="i"
-                class="orders">
-                <div slot="header" class="order-header">
-                    <van-row>
-                        <van-col span="18" style="font-size:22px;line-height:30p">
-                            <p>vivo官方旗舰店</p>
-                        </van-col>
-                        <van-col span="6" style="font-size:16px;line-height:30p;color:red">
-                            <p>交易成功</p>
-                        </van-col>
-                    </van-row>
-                    <van-row>
-                        <van-col span="12" style="font-size:12px;line-height:30p;color:#ccc">
-                            <p>订单号：{{order.id}}</p>
-                        </van-col>
-                        <van-col span="12" style="font-size:12px;line-height:30p;color:#ccc">
-                            <p>下单时间：{{order.addTime | dateformat('YYYY-MM-DD HH:mm:ss')}}</p>
-                            
-                        </van-col>
-                    </van-row>
-                </div>
-                
-                <div class="order-body" v-for="(item,index) in order.result" :key="index">
-                    <div class="orderImage">
-                        <img :src="item.image" alt="手机图片">
-                    </div>
-                    <div class="order-text">
-                        <div class="orderName"><span>{{item.name}}</span></div>
-                        <div class="orderColor"><span>颜色:{{item.color}}</span></div>
-                        <div class="orderPrice"><span>￥{{item.price}}</span></div>
-                    </div>
-                    <p >×{{item.value}}</p>
-                </div>
-                <div slot="footer" class="order-total">
-                    <van-row>
-                        <van-col span="18" style="font-size:16px;line-height:30px">
-                            共<i style="color:red">&nbsp;{{order.result.length}}&nbsp;</i>件商品 总计:&nbsp;<i style="color:red">￥{{order.total}}</i>
-                        </van-col>
-                        <van-col span="6"><van-button size="small" type="danger" @click="orderdel(i)">删除</van-button></van-col>
-                    </van-row>
-                </div>
-                
-            </van-panel>
+        <div v-else class="orderMain">
+            <van-tabs v-model="active">
+                <van-tab title="全部">
+                    <OrderList :orderList="orderList"/>    
+                </van-tab>
+                <van-tab title="未付款">
+                    <OrderList :orderList="orderList" :orderStatus="0"/>
+                </van-tab>
+                <van-tab title="已付款">
+                    <OrderList :orderList="orderList" :orderStatus="1"/>
+                </van-tab>
+                <van-tab title="已发货">
+                    <OrderList :orderList="orderList" :orderStatus="2"/>
+                </van-tab>
+            </van-tabs>
         </div>
     </div>
 </template>
 
 <script>
 import { mapState ,mapMutations ,mapGetters,} from 'vuex';
+import OrderList from '../../components/orderList'
 export default {
     name:"order",
+    components: {
+        OrderList
+    },
     data(){
         return{
-            order:[]
+            orderList:[],
+            active: 0
         }
     },
     computed:{
         ...mapGetters(
             ["sum"]
-        ),
-        orders(){
-            return this.$store.state.orders    
-        },
-        
+        )
     },
     methods:{
         ...mapMutations([
@@ -83,9 +54,21 @@ export default {
         back(){
             this.$router.go(-1)
         },
+        getOrderList() {
+            this.$axios.get(this.$baseUrl+"userOrder/list",{ params: {
+                userId: 1
+            }}).then(res => {
+                if(res.data.code === 0 || res.data.code === 200 ){
+                    this.orderList = res.data.data
+                }
+            }).catch(err => {
+                Toast.fail(err.message);
+            })
+        }
     },
-    mounted() {},
-    updated() {},
+    mounted() {
+        this.getOrderList()
+    }
 }
 </script>
 
@@ -125,6 +108,7 @@ export default {
                 background: white;
                 list-style: none;
                 border-top: 1px solid #ccc;
+                overflow: hidden;
                 .orderImage{
                     padding: 0.3rem;
                     >img{
@@ -140,9 +124,10 @@ export default {
                         width: 100%;
                     }
                     .orderColor{
+                        max-height: 45px;
+                        overflow: hidden;
                         >span{
                             font-size: 14px;
-                            padding-left: 0.1rem;
                             color: #888;
                         }
                     }

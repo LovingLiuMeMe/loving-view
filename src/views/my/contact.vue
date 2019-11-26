@@ -6,11 +6,9 @@
             @click-left="back"
         />
         <div class="AuthorMain">
-            <h2>18岁的老周是个小全栈</h2>
-            <img src="/img/touxiang.jpg" alt="" width="80px" height="80px">
-            <p>邮箱：zhouhj0425@163.com</p>
-            <p>qq：634881864</p>
-            <p>github: <a href="https://github.com/zhouhengjian/vue-vivo-shop-mobile.git">vue-vivo-shop-mobile</a> </p>
+            <h2>刘波</h2>
+            <p>lovingliu@126.com</p>
+            <p>qq：3230644615</p>
             <van-button plain type="danger" @click="goHome">进入首页</van-button>
         </div>
     </div>

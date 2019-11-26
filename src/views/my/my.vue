@@ -3,14 +3,14 @@
         <van-nav-bar title="个人中心"/>
         <div class="myMain">
             <div class="Main" v-if="islogin==true">
-                <img src="/img/200x100.jpeg" alt="头像">
+                <img src="http://img.lovingliu.cn/default.jpg" alt="头像">
                 <p>{{myName}}</p>
             </div>
             <div class="Main" v-if="islogin==false">
-                <img src="/img/touxiang.jpg" alt="头像">
+                <img src="http://img.lovingliu.cn/default.jpg" alt="头像">
                 <p>
                     <van-button type="primary" @click="tologin">登录</van-button>
-                    <van-button type="info" @click="dev">注册</van-button>
+                    <van-button type="info" @click="toregister">注册</van-button>
                 </p>
             </div>
         </div>
@@ -38,7 +38,7 @@
         </div>
         <van-row v-if="islogin==true">
             <van-col offset="6" span="12">
-                <van-button type="danger" size="large" @click="loginOut">退出登录</van-button>
+                <van-button type="danger" size="large" @click="logOut">退出登录</van-button>
             </van-col>
         </van-row>
         
@@ -48,11 +48,12 @@
 <script>
 import { mapState } from 'vuex';
 import { Toast } from 'vant';
+import { async } from 'q';
 export default {
     name:"my",
     data(){
         return{
-            myName:"一条小团团ovo"
+            myName: this.$store.state.userInfo.userName
         }
     },
     computed: {
@@ -88,8 +89,21 @@ export default {
         dev(){
             Toast.fail('暂未开放注册功能，敬请期待....');
         },
-        loginOut(){
-            sessionStorage.removeItem("loginInfo")
+        toregister(){
+            this.$router.push('/register')
+        },
+        logOut(){
+            this.$axios.get(this.$baseUrl + "user/logout").then(res => {
+                if(res.data.code === 0 || res.data.code === 200) {
+                    Toast.success(res.data.msg)
+                }else {
+                    Toast.fail(res.data.msg)
+                }
+            }).catch(err => {
+                Toast.fail(err.message)
+            })
+            sessionStorage.removeItem("userInfo")
+            this.$store.dispatch("userLogout")
             this.$router.go(0)
         }
     },

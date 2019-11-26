@@ -1,151 +1,105 @@
 <template>
-    <div class="parts">
+    <div class="choose">
         <van-nav-bar
             title="选购配件"
             left-arrow
-            @click-left="parts"
+            @click-left="choose"
         />
-        <div class="partsMain">
-            <van-tabs v-model="selected" animated swipeable>
+        <div class="choose-main">
+            <van-tabs v-model="selected" swipeable animated>
                 <van-tab title="全部">
                     <van-row class="products">
-                        <van-col span="12" v-for="(parts,index) in list" :key="index">
-                            <div @click="open(parts.id)">
+                        <van-col span="12" v-for="goodsInfo in allData" :id="goodsInfo.goodsId" :key="goodsInfo.goodsId">
+                            <div @click="open(goodsInfo.goodsId)">
                                 <div class="image">
-                                    <img :src="parts.image" alt="图片">
+                                    <img v-lazy="goodsInfo.goodsCoverImg" alt="图片">
                                 </div>
-                                <div class="name">{{parts.name}}</div>
-                                <div class="nametwo">{{parts.nametwo}}</div>
-                                <div class="Price">￥{{parts.price}}</div>
+                                <div class="name">{{goodsInfo.goodsName}}</div>
+                                <div class="nametwo">{{goodsInfo.goodsIntro}}</div>
+                                <div class="Price">￥{{goodsInfo.sellingPrice}}</div>
                             </div>
                         </van-col>
                     </van-row>
                 </van-tab>
-                <van-tab title="充电器">
+                <van-tab :title="category.categoryName" v-for="category in categoryList" :key="category.categoryId">
                     <van-row class="products">
-                        <van-col span="12" v-for="(parts,index) in charger" :key="index">
-                            <div @click="open(parts.id)">
+                        <van-col span="12" v-for="goodsInfo in category.goodsInfoList" :id="goodsInfo.goodsId" :key="goodsInfo.goodsId">
+                            <div @click="open(goodsInfo.goodsId)">
                                 <div class="image">
-                                    <img :src="parts.image" alt="图片">
+                                    <img v-lazy="goodsInfo.goodsCoverImg" alt="图片">
                                 </div>
-                                <div class="name">{{parts.name}}</div>
-                                <div class="nametwo">{{parts.nametwo}}</div>
-                                <div class="Price">￥{{parts.price}}</div>
+                                <div class="name">{{goodsInfo.goodsName}}</div>
+                                <div class="nametwo">{{goodsInfo.goodsIntro}}</div>
+                                <div class="Price">￥{{goodsInfo.sellingPrice}}</div>
                             </div>
                         </van-col>
                     </van-row>
                 </van-tab>
-                <van-tab title="保护膜">
-                    <van-row class="products">
-                        <van-col span="12" v-for="(parts,index) in protect" :key="index">
-                            <div @click="open(parts.id)">
-                                <div class="image">
-                                    <img :src="parts.image" alt="图片">
-                                </div>
-                                <div class="name">{{parts.name}}</div>
-                                <div class="nametwo">{{parts.nametwo}}</div>
-                                <div class="Price">￥{{parts.price}}</div>
-                            </div>
-                        </van-col>
-                    </van-row>
-                </van-tab>
-                <van-tab title="耳机音响">
-                    <van-row class="products">
-                        <van-col span="12" v-for="(parts,index) in headset" :key="index">
-                            <div @click="open(parts.id)">
-                                <div class="image">
-                                    <img :src="parts.image" alt="图片">
-                                </div>
-                                <div class="name">{{parts.name}}</div>
-                                <div class="nametwo">{{parts.nametwo}}</div>
-                                <div class="Price">￥{{parts.price}}</div>
-                            </div>
-                        </van-col>
-                    </van-row>
-                </van-tab>
-            </van-tabs>
+            </van-tabs>            
         </div>
     </div>
 </template>
 
+
 <script>
 import { Tab, Tabs } from 'vant';
 export default {
+    name:"choose",
+    computed: {
+        // 全部商品 后期替换
+        allData() {
+            let goodsInfoArray = []
+            this.categoryList.map(item1 => {
+                item1.goodsInfoList.map(item2 => {
+                    goodsInfoArray.push(item2)
+                })
+            })
+            console.log(goodsInfoArray)
+            return goodsInfoArray
+        }
+    },
     data(){
         return{
             selected:"",
-            list:[],
-            charger:[],
-            protect:[],
-            headset:[]
+            categoryList:[]
         }
     },
     mounted(){
-        this.getData(),
-        this.chargerData(),
-        this.protectData(),
-        this.HeadsetData()
+        this.category()
     },
     methods:{
-        getData(){
-            this.$axios.get("/parts.json").then((res)=>{
-                for(var i=0;i<res.data.list.length;i++){
-                    let selData=res.data.list[i];
-                    let part=res.data.list[i].name;
-                    this.list.push(selData)
+        category() {
+            this.$axios.get(this.$baseUrl+"userGoods/category").then(res => {
+                if(res.data.code === 0 || res.data.code === 200 ){
+                    console.log(res.data.data)
+                    this.categoryList = res.data.data
                 }
+            }).catch(err => {
+                Toast.fail(err.message);
             })
-        },
-        chargerData(){
-            this.$axios.get("/parts.json").then((res)=>{
-                for(var i=0;i<res.data.charger.length;i++){
-                    let selData=res.data.charger[i];
-                    let part=res.data.charger[i].name;
-                    this.charger.push(selData)
-                }
-            })
-        },
-        protectData(){
-            this.$axios.get("/parts.json").then((res)=>{
-                for(var i=0;i<res.data.protect.length;i++){
-                    let selData=res.data.protect[i];
-                    let part=res.data.protect[i].name;
-                    this.protect.push(selData)
-                }
-            })
-        },
-        HeadsetData(){
-            this.$axios.get("/parts.json").then((res)=>{
-                for(var i=0;i<res.data.headset.length;i++){
-                    let selData=res.data.headset[i];
-                    let part=res.data.headset[i].name;
-                    this.headset.push(selData)
-                }
-            })
-        },
-        parts(){
-            this.$router.go(-1)
         },
         open(id){
             this.$router.push({path:"goodDetail",query:{id:id}})
+        },
+        choose(){
+            this.$router.go(-1)
         },
     }
 }
 </script>
 
-
-<style lang="scss">
-.parts{
+<style lang="scss" scoped>
+.choose{
     position: fixed;
     background: white;
     width: 100%;
     height: 100%;
     top: 0;
     bottom: 0;
-    z-index: 999;
+    z-index:999;
     overflow-x: hidden;
     overflow-y: auto;
-    .partsMain{
+    .choose-main{
         width: 100%;
         .products{
             border-top: 1px solid #ccc;
@@ -180,9 +134,6 @@ export default {
                 }
                 .nametwo{
                     font-size: 0.2rem;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
                     text-align: center;
                     padding-top: 0.15rem;
                     font-family: "微软雅黑"
@@ -199,6 +150,6 @@ export default {
             }
         }
     }
-} 
+}
 
 </style>

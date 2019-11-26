@@ -3,18 +3,9 @@
         <!-- Swiper -->
         <div class="swiper-container">
             <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <img src="/img/wel-ad1.jpg" alt="" width="100%" height="100%">
-                </div>
-                <div class="swiper-slide">
-                    <img src="/img/wel-ad2.jpg" alt="" width="100%" height="100%">
-                </div>
-                <div class="swiper-slide">
-                    <img src="/img/wel-ad3.jpg" alt="" width="100%" height="100%">
-                </div>
-                <div class="swiper-slide lastAd">
-                    <img src="/img/wel-ad1.jpg" alt="" width="100%" height="100%">
-                    <router-link to='/home'><van-button plain type="danger">进入首页</van-button></router-link>
+                <div class="swiper-slide" :class="{'lastAd': index === welcomeList.length -1 }" v-for="(item, index) in welcomeList" :key="item.welcomeId">
+                    <img :src="item.welcomeUrl" alt="欢迎页" width="100%" height="100%">
+                    <router-link to='/home' v-if="index === welcomeList.length -1"><van-button plain type="danger">进入首页</van-button></router-link>
                 </div>
             </div>
             <!-- Add Pagination -->
@@ -25,6 +16,11 @@
 
 <script>
 export default {
+    data(){
+        return {
+            welcomeList: []
+        }
+    },
     mounted() {
         new Swiper('.swiper-container', {
             pagination: {
@@ -32,11 +28,20 @@ export default {
             },
         })
     },
-    created(){
-        if(localStorage.One){
-            this.$router.push("/ad");
-        }else{
-            localStorage.One = true;
+    created() {
+        this.getWelcomeList()
+    },
+    methods: {
+        getWelcomeList(){
+            this.$axios.get(this.$baseUrl+'userIndex/welcomeList').then(res => {
+                if(res.data.code === 0 || res.data.code === 200){
+                    this.welcomeList = res.data.data
+                }else {
+                    Toast.fail(res.data.msg)
+                }
+            }).catch(err => {
+                Toast.fail(err.message)
+            })
         }
     }
 }

@@ -13,20 +13,21 @@
         </div>
         <div class="cartMain">
             <ul>
-                <li v-for="(cart,index) in carts" class="cartList">
+                <li v-for="(cart,index) in carts" :key="index" class="cartList">
                     <div class="cartImage">
-                        <img :src="cart.image" >
+                        <img :src="cart.goodsCoverImg" >
                     </div>
                     <!-- 购物车商品信息 -->
                     <div class="cartInformation">
-                        <div class="cartName">{{cart.name}}</div>
-                        <p class="cartPrice">￥{{cart.price}}</p>
+                        <div class="cartName">{{cart.goodsName}}</div>
+                        <p class="goodsIntro">商品详情:{{cart.goodsName}}</p>
+                        <p class="cartPrice">￥{{cart.sellingPrice}}</p>
                     </div>
                     <!-- 购物车商品数量 -->
                     <div class="cartNumber">
                         <van-row>
                             <van-col span="16">
-                                <van-stepper v-model="cart.value" integer min="1" max="99"/>
+                                <van-stepper v-model="cart.goodsCount" integer min="1" max="99"/>
                             </van-col>
                             <van-col span="4">
                                 <van-icon name="delete" size="0.75rem" @click="shanchu(index)"/>
@@ -37,7 +38,7 @@
             </ul> 
             <van-submit-bar
                 :price="sum*100"
-                button-text="提交订单"
+                button-text="确认"
                 @submit="onSubmit"
             />
         </div>
@@ -73,13 +74,14 @@ export default {
                     Toast.fail('购物车还没有东西哟！')
                 }else{
                     let oneOrder={
-                        id:this.$common.getOrderId(new Date()),
-                        total:this.sum,
-                        addTime:new Date(),
-                        result:this.carts
+                        id: this.$common.getOrderId(new Date()),
+                        totalPrice: this.sum,
+                        addTime: new Date(),
+                        orderStatus: 0,
+                        orderItemList:this.carts
                     }
-                    this.$store.commit("addorder",oneOrder)
-                    Toast.success('订单提交成功')
+                    this.$store.commit('addTempOrder',oneOrder);// 增加到定时订单
+                    this.$router.push("/orderDetail")
                 }
             }else{
                 Toast.fail('请先登录！')
@@ -89,7 +91,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .cart{
         position: fixed;
         width: 100%;
@@ -152,6 +154,12 @@ export default {
                     .cartName{
                         width: 9.3rem;
                         font-size: 0.36rem;
+                    }
+                    .goodsIntro{
+                        font-size: 12px;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        color: #888;
                     }
                     .cartPrice{
                         color:red;

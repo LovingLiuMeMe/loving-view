@@ -31,7 +31,7 @@ export default {
     },
     methods: {
         show(){
-            let urlPath=["/","/author","/login","/cart","/ad","/order","/userInfo","/address","/goodDetail","/news"]
+            let urlPath=["/","/author","/login","/cart","/ad","/order","/userInfo","/address","/goodDetail","/news","/orderDetail","/register"]
             if(urlPath.indexOf(this.$route.path)!= -1){ // 隐藏底部导航栏
                 this.$store.commit("NoShow")
             }else{ // 显示底部导航栏
